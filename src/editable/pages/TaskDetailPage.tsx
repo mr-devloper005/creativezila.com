@@ -8,6 +8,9 @@ import type { SitePost } from '@/lib/site-connector'
 import { EditableSiteShell } from '@/editable/shell/EditableSiteShell'
 import { EditableArticleComments } from '@/editable/components/EditableArticleComments'
 import { getTaskTheme, taskThemeStyle } from '@/editable/theme/task-themes'
+import { Ads } from '@/lib/ads'
+
+type AdSlotName = 'header' | 'sidebar' | 'in-feed' | 'article-bottom' | 'footer'
 
 export const revalidate = 3
 
@@ -18,14 +21,14 @@ export async function generateEditableDetailMetadata(task: TaskKey, params: Prom
   return post ? await buildPostMetadata(task, post) : await buildTaskMetadata(task)
 }
 
-export async function EditableTaskDetailRoute({ task, params }: { task: TaskKey; params: Promise<{ slug?: string; username?: string }> }) {
+export async function EditableTaskDetailRoute({ task, params, adSlot = 'article-bottom' }: { task: TaskKey; params: Promise<{ slug?: string; username?: string }>; adSlot?: AdSlotName }) {
   const resolved = await params
   const slug = resolved.slug || resolved.username || ''
   const post = await fetchTaskPostBySlug(task, slug)
   if (!post) notFound()
   const related = (await fetchTaskPosts(task, 7)).filter((item) => item.slug !== post.slug).slice(0, 4)
   const comments = task === 'article' ? await fetchArticleComments(post.slug, 50) : []
-  return <TaskDetailView task={task} post={post} related={related} comments={comments} />
+  return <TaskDetailView task={task} post={post} related={related} comments={comments} adSlot={adSlot} />
 }
 
 const getContent = (post: SitePost) => post.content && typeof post.content === 'object' ? post.content as Record<string, unknown> : {}
@@ -113,7 +116,7 @@ const mapSrcFor = (post: SitePost) => {
   return ''
 }
 
-export function TaskDetailView({ task, post, related, comments = [] }: { task: TaskKey; post: SitePost; related: SitePost[]; comments?: Array<{ id: string; name: string; comment: string; createdAt: string }> }) {
+export function TaskDetailView({ task, post, related, comments = [], adSlot = 'article-bottom' }: { task: TaskKey; post: SitePost; related: SitePost[]; comments?: Array<{ id: string; name: string; comment: string; createdAt: string }>; adSlot?: AdSlotName }) {
   return (
     <EditableSiteShell>
       <main style={taskThemeStyle(task)} className="min-h-screen bg-[var(--tk-bg)] text-[var(--tk-text)]">
@@ -124,6 +127,10 @@ export function TaskDetailView({ task, post, related, comments = [] }: { task: T
         {task === 'pdf' ? <PdfDetail post={post} related={related} /> : null}
         {task === 'profile' ? <ProfileDetail post={post} related={related} /> : null}
         {task === 'article' ? <ArticleDetail post={post} related={related} comments={comments} /> : null}
+        {/* Editorial ad band before footer — different slot per page type */}
+        <div className="mx-auto max-w-6xl px-4 py-6">
+          <Ads slot={adSlot} showLabel eager className="mx-auto w-full" />
+        </div>
       </main>
     </EditableSiteShell>
   )

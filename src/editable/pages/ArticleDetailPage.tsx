@@ -11,5 +11,5 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export default async function ArticleDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  return <EditableTaskDetailRoute task="article" params={params} />
+  return <EditableTaskDetailRoute task="article" params={params} adSlot="article-bottom" />
 }
