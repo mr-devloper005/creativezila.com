@@ -11,7 +11,7 @@ export async function ArticlePageTaskPage({
   searchParams?: Promise<{ category?: string; page?: string }>
   basePath?: string
 }) {
-  return <EditableTaskArchiveRoute task="article" searchParams={searchParams} basePath={basePath} />
+  return <EditableTaskArchiveRoute task="article" searchParams={searchParams} basePath={basePath} adSlot="in-feed" />
 }
 
 export default ArticlePageTaskPage

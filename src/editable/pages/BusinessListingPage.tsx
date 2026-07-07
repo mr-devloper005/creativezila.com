@@ -11,7 +11,7 @@ export async function BusinessListingPageTaskPage({
   searchParams?: Promise<{ category?: string; page?: string }>
   basePath?: string
 }) {
-  return <EditableTaskArchiveRoute task="listing" searchParams={searchParams} basePath={basePath} />
+  return <EditableTaskArchiveRoute task="listing" searchParams={searchParams} basePath={basePath} adSlot="footer" />
 }
 
 export default BusinessListingPageTaskPage

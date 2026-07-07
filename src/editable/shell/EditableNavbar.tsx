@@ -3,104 +3,100 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, Search, UserPlus, LogIn, X, PlusCircle } from 'lucide-react'
+import { Menu, X, ArrowRight, Search } from 'lucide-react'
 import { SITE_CONFIG } from '@/lib/site-config'
-import { globalContent } from '@/editable/content/global.content'
 import { useEditableLocalAuthSession } from '@/editable/components/EditableLocalAuthForms'
 
 export function EditableNavbar() {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
   const { session, logout } = useEditableLocalAuthSession()
+  // Site is article-primary. Hide the "Article" and "Business Listing" tabs
+  // from the nav — article content is surfaced via the homepage instead, and
+  // listings live only as backend/task routes.
+  const HIDDEN_TASKS = new Set(['article', 'listing'])
   const navItems = useMemo(
-    () => SITE_CONFIG.tasks.filter((task) => task.enabled).map((task) => ({ label: task.label, href: task.route })),
+    () =>
+      SITE_CONFIG.tasks
+        .filter((task) => task.enabled && !HIDDEN_TASKS.has(task.key))
+        .map((task) => ({ label: task.label, href: task.route })),
     []
   )
+  const leftLinks = navItems.slice(0, 3)
 
   return (
-    <header className="sticky top-0 z-50 bg-[var(--editable-nav-bg)]/96 text-[var(--editable-nav-text)] backdrop-blur-md">
-      <div className="h-[3px] bg-[linear-gradient(90deg,transparent_0%,var(--slot4-accent)_20%,var(--slot4-accent)_80%,transparent_100%)]" />
-
-      <nav className="mx-auto flex min-h-[76px] w-full max-w-[var(--editable-container)] items-center gap-5 px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="group flex shrink-0 items-center gap-3 border-r border-[var(--editable-border)] pr-5">
-          <span className="flex h-11 w-11 items-center justify-center border border-[var(--slot4-accent)]/45 bg-[var(--slot4-surface-bg)] transition group-hover:border-[var(--slot4-accent)]">
-            <img src="/favicon.png?v=20260413" alt={SITE_CONFIG.name} className="h-8 w-8 object-contain" />
-          </span>
-          <span className="hidden min-w-0 md:block">
-            <span className="editable-display block max-w-[200px] truncate text-xl font-semibold leading-none tracking-[0.01em]">{SITE_CONFIG.name}</span>
-            <span className="mt-1 block max-w-[200px] truncate text-[10px] font-medium uppercase tracking-[0.26em] text-[var(--slot4-muted-text)]">
-              {globalContent.nav?.tagline || SITE_CONFIG.tagline}
-            </span>
+    <header className="sticky top-0 z-50 bg-[var(--editable-nav-bg)] text-[var(--editable-nav-text)] shadow-[0_2px_0_rgba(0,0,0,0.04)]">
+      <nav className="mx-auto flex min-h-[72px] w-full max-w-[var(--editable-container)] items-center gap-8 px-5 sm:px-8 lg:px-10">
+        {/* Playful script logo — full site name */}
+        <Link href="/" className="flex shrink-0 items-center gap-2">
+          <img src="/favicon.png?v=20260413" alt={SITE_CONFIG.name} className="h-8 w-8 object-contain" />
+          <span className="editable-script whitespace-nowrap text-[32px] leading-none text-white sm:text-[36px]">
+            {SITE_CONFIG.name}
           </span>
         </Link>
 
-        <div className="hidden items-stretch gap-0 lg:flex">
-          {navItems.slice(0, 5).map((item) => {
+        {/* Left-side text links (Penzu-style: "Penzu Pro | Support | Download") */}
+        <div className="hidden items-center gap-7 md:flex">
+          {leftLinks.map((item) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`relative flex items-center px-4 text-[11px] font-semibold uppercase tracking-[0.22em] transition ${
-                  active ? 'text-[var(--slot4-accent)]' : 'text-[var(--slot4-muted-text)] hover:text-[var(--slot4-page-text)]'
+                className={`text-[15px] font-medium tracking-[0.005em] text-white/95 transition hover:text-white ${
+                  active ? 'underline decoration-white/60 decoration-2 underline-offset-[6px]' : ''
                 }`}
               >
                 {item.label}
-                {active ? <span className="absolute inset-x-3 bottom-0 h-[2px] bg-[var(--slot4-accent)]" /> : null}
               </Link>
             )
           })}
+          <Link href="/about" className="text-[15px] font-medium text-white/95 transition hover:text-white">
+            About
+          </Link>
+          <Link href="/contact" className="text-[15px] font-medium text-white/95 transition hover:text-white">
+            Support
+          </Link>
         </div>
 
-        <form action="/search" className="mx-auto hidden min-w-0 flex-1 justify-center md:flex">
-          <label className="flex w-full max-w-md items-center gap-2 border-b border-[var(--slot4-accent)]/30 pb-2 transition focus-within:border-[var(--slot4-accent)]">
-            <Search className="h-4 w-4 shrink-0 text-[var(--slot4-accent)]" />
-            <input
-              name="q"
-              type="search"
-              placeholder="Search posts"
-              className="min-w-0 flex-1 bg-transparent text-sm font-medium outline-none placeholder:text-[var(--slot4-muted-text)]"
-            />
-          </label>
-        </form>
-
-        <div className="ml-auto flex shrink-0 items-center gap-2">
+        {/* Right side: Sign In / Sign Up → */}
+        <div className="ml-auto flex shrink-0 items-center gap-6">
+          <Link href="/search" aria-label="Search" className="hidden text-white/90 transition hover:text-white sm:inline-flex">
+            <Search className="h-[18px] w-[18px]" />
+          </Link>
           {session ? (
             <>
-              <Link
-                href="/create"
-                className="hidden items-center gap-2 border border-[var(--slot4-accent)] bg-[var(--editable-cta-bg)] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--editable-cta-text)] transition hover:opacity-90 sm:inline-flex"
-              >
-                <PlusCircle className="h-3.5 w-3.5" /> Create
+              <Link href="/create" className="hidden text-[15px] font-medium text-white/95 transition hover:text-white sm:inline-block">
+                Create
               </Link>
               <button
                 type="button"
                 onClick={logout}
-                className="hidden items-center gap-2 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--slot4-muted-text)] transition hover:text-[var(--slot4-page-text)] sm:inline-flex"
+                className="hidden text-[15px] font-medium text-white/95 transition hover:text-white sm:inline-block"
               >
-                Logout
+                Sign Out
               </button>
             </>
           ) : (
             <>
               <Link
                 href="/login"
-                className="hidden items-center gap-2 border border-[var(--editable-border)] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--slot4-muted-text)] transition hover:border-[var(--slot4-accent)]/40 hover:text-[var(--slot4-page-text)] sm:inline-flex"
+                className="hidden text-[15px] font-medium text-white/95 transition hover:text-white sm:inline-block"
               >
-                <LogIn className="h-3.5 w-3.5" /> Login
+                Sign In
               </Link>
               <Link
                 href="/signup"
-                className="hidden items-center gap-2 border border-[var(--slot4-accent)] bg-[var(--editable-cta-bg)] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--editable-cta-text)] transition hover:opacity-90 sm:inline-flex"
+                className="hidden items-center gap-1.5 text-[15px] font-semibold text-white transition hover:opacity-90 sm:inline-flex"
               >
-                <UserPlus className="h-3.5 w-3.5" /> Sign up
+                Sign Up <ArrowRight className="h-[15px] w-[15px]" />
               </Link>
             </>
           )}
           <button
             type="button"
-            onClick={() => setOpen((value) => !value)}
-            className="border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)] p-2 lg:hidden"
+            onClick={() => setOpen((v) => !v)}
+            className="rounded-md border border-white/40 p-1.5 text-white md:hidden"
             aria-label="Toggle menu"
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -108,26 +104,27 @@ export function EditableNavbar() {
         </div>
       </nav>
 
-      <div className="h-px bg-[var(--editable-border)]" />
-
       {open ? (
-        <div className="border-t border-[var(--editable-border)] bg-[var(--editable-nav-bg)] px-4 py-5 lg:hidden">
-          <form action="/search" className="mb-5 flex items-center gap-2 border-b border-[var(--slot4-accent)]/30 pb-2">
-            <Search className="h-4 w-4 text-[var(--slot4-accent)]" />
-            <input name="q" type="search" placeholder="Search posts" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--slot4-muted-text)]" />
+        <div className="border-t border-white/15 bg-[var(--editable-nav-bg)] px-5 py-4 md:hidden">
+          <form action="/search" className="mb-4 flex items-center gap-2 rounded-lg bg-white/15 px-3 py-2">
+            <Search className="h-4 w-4 text-white/80" />
+            <input
+              name="q"
+              type="search"
+              placeholder="Search"
+              className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/70"
+            />
           </form>
           <div className="grid gap-1">
-            {[{ label: 'Home', href: '/' }, ...navItems, { label: 'Contact', href: '/contact' }, ...(session ? [{ label: 'Create', href: '/create' }] : [{ label: 'Login', href: '/login' }, { label: 'Sign up', href: '/signup' }])].map((item) => {
+            {[{ label: 'Home', href: '/' }, ...navItems, { label: 'About', href: '/about' }, { label: 'Support', href: '/contact' }, ...(session ? [{ label: 'Create', href: '/create' }] : [{ label: 'Sign In', href: '/login' }, { label: 'Sign Up', href: '/signup' }])].map((item) => {
               const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className={`border-l-2 px-4 py-3 text-sm font-semibold uppercase tracking-[0.16em] ${
-                    active
-                      ? 'border-[var(--slot4-accent)] bg-[var(--slot4-surface-bg)] text-[var(--slot4-accent)]'
-                      : 'border-transparent text-[var(--slot4-muted-text)] hover:border-[var(--slot4-accent)]/40 hover:bg-[var(--slot4-surface-bg)]'
+                  className={`rounded-md px-3 py-2.5 text-[15px] font-medium transition ${
+                    active ? 'bg-white text-[var(--slot4-accent)]' : 'text-white hover:bg-white/10'
                   }`}
                 >
                   {item.label}
