@@ -11,7 +11,7 @@ export async function ProfilePageTaskPage({
   searchParams?: Promise<{ category?: string; page?: string }>
   basePath?: string
 }) {
-  return <EditableTaskArchiveRoute task="profile" searchParams={searchParams} basePath={basePath} />
+  return <EditableTaskArchiveRoute task="profile" searchParams={searchParams} basePath={basePath} adSlot="header" />
 }
 
 export default ProfilePageTaskPage

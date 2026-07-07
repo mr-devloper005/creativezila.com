@@ -11,5 +11,5 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
 }
 
 export default async function ProfileDetailPage({ params }: { params: Promise<{ username: string }> }) {
-  return <EditableTaskDetailRoute task="profile" params={params} />
+  return <EditableTaskDetailRoute task="profile" params={params} adSlot="sidebar" />
 }
